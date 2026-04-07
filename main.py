@@ -323,9 +323,57 @@ def run_scenario(scenario_name, steps = 30, dt=1.0):
 
     print(f"Saved plot: {output_path}")
 
+def simulate_scenario(scenario_name, steps=30, dt=1.0):
+    scenario_fn = SCENARIOS[scenario_name]
+
+    tank_port = Tank('Port Tank', 100.0, 70.0)
+    tank_starboard = Tank('Starboard Tank', 100.0, 20.0)
+    pump = Pump('P1', flow_rate=2.0, is_running=False, start_delay_steps=2, stop_delay_steps=1)
+    v1 = Valve('V1', is_open=False, opening_delay_steps=2, closing_delay_steps=2)
+    v2 = Valve('V2', is_open=False, opening_delay_steps=2, closing_delay_steps=2)
+
+    system = BallastSystem(
+        tank_port, tank_starboard, pump, v1, v2,
+        min_source_level=10.0,
+        max_destination_level=90.0
+    )
+
+    flow_hist = []
+    alarm_snapshots = []
+    sequence_history = []
+
+    for i in range(1, steps+1):
+        commands = scenario_fn(i)
+
+        v2.stuck_closed = commands['v2_stuck_closed']
+        pump.failed_to_start = commands['pump_failed_to_start']
+
+        apply_control_logic(
+            system,
+            model = 'annual',
+            manual_pump_command=['manual_pump_command'],
+            manual_suction_valve_command=['manual_suction_valve_command'],
+            manual_discharge_valve_command=['manual_discharge_valve_command']
+        )
+
+        flow = system.step(dt,i)
+        flow_hist.append(flow)
+        alarm_snapshots.append(system.alarms.copy())
+        sequence_history.append(system.sequence_state)
+
+        return{
+            'final_source_level': system.source_tank.level,
+            'final_destination_level': system.destination_tank.level,
+            'final_alarms': system.alarms.copy(),
+            'alarm_history': system.alarm_manager.get_alarm_history(),
+            'flow_hist': flow_hist,
+            'sequence_hist': sequence_history,
+            'last_interlock_reason': system.last_interlock_reason,
+        }
+
 def main():
     # Choose one scenario here
-    scenario_to_run = 'operator_valve_closure_recovery'
+    scenario_to_run = 'valve_fail_to_open'
 
     # Other options:
     # "normal_manual_transfer"
