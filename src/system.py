@@ -33,21 +33,19 @@ class BallastSystem:
 
         self.alarms = self.alarm_manager.get_alarm_states()
 
-    def update_alarms(self):
-        self.alarm_manager.update(self)
+    def update_alarms(self, step):
+        self.alarm_manager.update(self, step)
         self.alarms = self.alarm_manager.get_alarm_states()
 
-    def step(self, dt):
+    def step(self, dt, step):
         """
         Advance simulation by dt seconds.
         """
-        self.update_alarms()
+        self.update_alarms(step)
 
-        # V4 update part
         self.suction_valve.update()
         self.discharge_valve.update()
         self.pump.update()
-        ###
 
         allowed, reason = check_transfer_interlocks(
             pump=self.pump,
@@ -76,7 +74,7 @@ class BallastSystem:
         self.destination_tank.update(inflow=flow, outflow=0.0, dt=dt)
 
         self.last_flow = flow
-        self.update_alarms()
+        self.update_alarms(step)
 
         return flow
 
