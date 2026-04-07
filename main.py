@@ -373,7 +373,7 @@ def simulate_scenario(scenario_name, steps=30, dt=1.0):
 
 def main():
     # Choose one scenario here
-    scenario_to_run = 'valve_fail_to_open'
+    scenario_to_run = 'pump_fail_to_start'
 
     # Other options:
     # "normal_manual_transfer"
