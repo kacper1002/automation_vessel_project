@@ -274,7 +274,7 @@ def run_scenario(scenario_name, steps = 30, dt=1.0):
             manual_discharge_valve_command=commands["manual_discharge_valve_command"],
         )
 
-        flow = system.step(dt)
+        flow = system.step(dt, i)
 
         if system.last_interlock_reason != previous_reason:
             print(f"Step {i}: interlock -> {system.last_interlock_reason}")

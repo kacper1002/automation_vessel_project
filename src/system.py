@@ -8,7 +8,7 @@ class BallastSystem:
         destination_tank,
         pump,
         suction_valve,
-        discharge_valve,
+       discharge_valve,
         min_source_level=10.0,
         max_destination_level=90.0,
     ):
@@ -33,15 +33,17 @@ class BallastSystem:
 
         self.alarms = self.alarm_manager.get_alarm_states()
 
-    def update_alarms(self, step):
-        self.alarm_manager.update(self, step)
+    def update_alarms(self, step_index):
+        self.alarm_manager.update(self, step_index)
         self.alarms = self.alarm_manager.get_alarm_states()
 
-    def step(self, dt, step):
+
+    def step(self, dt, step_index):
         """
         Advance simulation by dt seconds.
         """
-        self.update_alarms(step)
+        
+        self.update_alarms(step_index)
 
         self.suction_valve.update()
         self.discharge_valve.update()
@@ -74,7 +76,7 @@ class BallastSystem:
         self.destination_tank.update(inflow=flow, outflow=0.0, dt=dt)
 
         self.last_flow = flow
-        self.update_alarms(step)
+        self.update_alarms(step_index)
 
         return flow
 
@@ -98,3 +100,4 @@ class BallastSystem:
             "alarms": self.alarms.copy(),
             'sequence_state': self.sequence_state,
         }
+        
