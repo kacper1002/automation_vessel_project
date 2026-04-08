@@ -5,6 +5,7 @@ class AlarmManager:
     PUMP_FAIL_TO_START = "pump_fail_to_start"
 
     def __init__(self, valve_timeout_steps=3, pump_timeout_steps=3):
+
         self.valve_timeout_steps = valve_timeout_steps
         self.pump_timeout_steps = pump_timeout_steps
 
@@ -16,6 +17,7 @@ class AlarmManager:
         }
 
         self.history = []
+        self.active_since = {name: None for name in self.alarms}
 
         self._discharge_valve_mismatch_counter = 0
         self._pump_mismatch_counter = 0
@@ -74,17 +76,39 @@ class AlarmManager:
 
     def _set_alarm(self, alarm_name, active, step):
         was_active = self.alarms[alarm_name]
+
+        if was_active == active:
+            return
+        
         self.alarms[alarm_name] = active
 
-        if was_active != active:
+        if active:
+            self.active_since[alarm_name] = step
             self.history.append(
                 {
-                    "step": step,
-                    "alarm": alarm_name,
-                    "active": active,
-                    "event": "RAISED" if active else "CLEARED",
+                    'step': step,
+                    'alarm': alarm_name,
+                    'active': True,
+                    'event': 'RAISED',
                 }
             )
+        else:
+            start_step = self.active_since[alarm_name]
+            duration_steps = step - start_step if start_step is not None else None
+
+            self.history.append(
+                {
+                    'step': step,
+                    'alarm': alarm_name,
+                    'active': False,
+                    'event': 'CLEARED',
+                    'start_step': start_step,
+                    'duration_steps': duration_steps,
+                }
+            )
+
+            self.active_since[alarm_name] = None
+
 
     def get_alarm_states(self):
         return self.alarms.copy()
@@ -97,3 +121,4 @@ class AlarmManager:
 
     def clear_history(self):
         self.history.clear()
+        self.active_since = {name: None for name in self.alarms}

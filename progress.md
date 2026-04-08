@@ -156,12 +156,11 @@ This project is intended to demonstrate:
 
 ---
 
-NEXT STEP WHEN CONTINUING
+8. Update to v4
+* Now alarm system gives clear outputs in CSV
+* Added run loop, that runs all of the scenarios and produces report in csv
+* Ran pytest tests on tests folder, to keep track of changes and if system is working. Allowing for easier control of if things are working. 
 
-In the next session, continue with:
-
-* Pump fault scenario validation OR
-* Expanding alarm system (event tracking)
 
 Avoid:
 
@@ -172,3 +171,4 @@ Keep:
 
 * modular structure
 * scenario-driven testing approach
+

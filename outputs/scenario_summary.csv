@@ -1,0 +1,5 @@
+scenario,source_final_m3,destination_final_m3,transfer_occurred,alarms_raised,alarm_durations,active_alarms_at_end,final_sequence,last_interlock
+normal_manual_transfer,18.0,72.0,True,"discharge_valve_fail_to_open, pump_fail_to_start",None,None,TRANSFERRING,Transfer allowed
+operator_valve_closure_recovery,30.0,60.0,True,"discharge_valve_fail_to_open, pump_fail_to_start",None,None,TRANSFERRING,Transfer allowed
+valve_fail_to_open,32.0,58.0,True,"discharge_valve_fail_to_open, pump_fail_to_start","discharge_valve_fail_to_open (6 steps, 11->17)",None,TRANSFERRING,Transfer allowed
+pump_fail_to_start,32.0,58.0,True,"discharge_valve_fail_to_open, pump_fail_to_start","pump_fail_to_start (6 steps, 11->17)",None,TRANSFERRING,Transfer allowed
