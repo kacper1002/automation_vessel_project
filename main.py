@@ -16,6 +16,65 @@ SEQUENCE_STATE_MAP = {
     "STOPPING": 3,
 }
 
+def build_default_system(
+        source_level=70.0,
+        destination_level=20.0):
+    tank_port = Tank("Port Tank", 100.0, source_level)
+    tank_starboard = Tank("Starboard Tank", 100.0, destination_level)
+
+    pump = Pump(
+        "P1",
+        flow_rate=2.0,
+        is_running=False,
+        start_delay_steps=2,
+        stop_delay_steps=1,
+    )
+
+    v1 = Valve(
+        "V1",
+        is_open=False,
+        opening_delay_steps=2,
+        closing_delay_steps=2,
+    )
+
+    v2 = Valve(
+        "V2",
+        is_open=False,
+        opening_delay_steps=2,
+        closing_delay_steps=2,
+    )
+
+    return BallastSystem(
+        tank_port,
+        tank_starboard,
+        pump,
+        v1,
+        v2,
+        min_source_level=10.0,
+        max_destination_level=90.0,
+    )
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ----------------------------------------- START OF SCENARIOS ----------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+def scenario_source_low_low_trip(i):
+    return {
+        'manual_pump_command': True,
+        'manual_suction_valve_command': True,
+        'manual_discharge_valve_command': True,
+        'v2_stuck_closed': False,
+        'pump_failed_to_start': False,
+    }
+
+def scenario_destination_high_high_trip(i):
+    return {
+        'manual_pump_command': True,
+        'manual_suction_valve_command': True,
+        'manual_discharge_valve_command': True,
+        'v2_stuck_closed': False,
+        'pump_failed_to_start': False
+    }
 
 def scenario_operator_valve_closure_recovery(i):
     if i < 10:
@@ -107,51 +166,59 @@ def scenario_normal_manual_transfer(i):
         "pump_failed_to_start": False,
     }
 
-
 SCENARIOS = {
-    "normal_manual_transfer": scenario_normal_manual_transfer,
-    "operator_valve_closure_recovery": scenario_operator_valve_closure_recovery,
-    "valve_fail_to_open": scenario_valve_fail_to_open,
-    "pump_fail_to_start": scenario_pump_fail_to_start,
+    "normal_manual_transfer": {
+        "fn": scenario_normal_manual_transfer,
+        "steps": 30,
+        "source_level": 70.0,
+        "destination_level": 20.0,
+        "description": "Nominal manual transfer with no faults.",
+    },
+    "operator_valve_closure_recovery": {
+        "fn": scenario_operator_valve_closure_recovery,
+        "steps": 30,
+        "source_level": 70.0,
+        "destination_level": 20.0,
+        "description": "Operator closes discharge valve temporarily, then reopens it.",
+    },
+    "valve_fail_to_open": {
+        "fn": scenario_valve_fail_to_open,
+        "steps": 30,
+        "source_level": 70.0,
+        "destination_level": 20.0,
+        "description": "Discharge valve is commanded open but becomes stuck closed for part of the run.",
+    },
+    "pump_fail_to_start": {
+        "fn": scenario_pump_fail_to_start,
+        "steps": 30,
+        "source_level": 70.0,
+        "destination_level": 20.0,
+        "description": "Pump is commanded on but fails to start during the fault window.",
+    },
+    "source_low_low_trip": {
+        "fn": scenario_source_low_low_trip,
+        "steps": 50,
+        "source_level": 70.0,
+        "destination_level": 20.0,
+        "description": "Continuous transfer until source tank reaches low-low threshold.",
+    },
+    "destination_high_high_trip": {
+        "fn": scenario_destination_high_high_trip,
+        "steps": 20,
+        "source_level": 70.0,
+        "destination_level": 88.0,
+        "description": "Continuous transfer with destination tank near full to trigger high-high protection.",
+    },
 }
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- END OF SCENARIOS ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
-def build_default_system():
-    tank_port = Tank("Port Tank", 100.0, 70.0)
-    tank_starboard = Tank("Starboard Tank", 100.0, 20.0)
 
-    pump = Pump(
-        "P1",
-        flow_rate=2.0,
-        is_running=False,
-        start_delay_steps=2,
-        stop_delay_steps=1,
-    )
-
-    v1 = Valve(
-        "V1",
-        is_open=False,
-        opening_delay_steps=2,
-        closing_delay_steps=2,
-    )
-
-    v2 = Valve(
-        "V2",
-        is_open=False,
-        opening_delay_steps=2,
-        closing_delay_steps=2,
-    )
-
-    return BallastSystem(
-        tank_port,
-        tank_starboard,
-        pump,
-        v1,
-        v2,
-        min_source_level=10.0,
-        max_destination_level=90.0,
-    )
-
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- START OF PLOTTING ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 def plot_results(
     output_path,
@@ -239,10 +306,26 @@ def plot_results(
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close()
 
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- END OF PLOTTING ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-def simulate_scenario(scenario_name, steps=30, dt=1.0):
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- START OF SIMULATING --------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+def simulate_scenario(
+        scenario_name, 
+        steps=30, 
+        dt=1.0,
+        source_level=70,
+        destination_level=20,
+        ):
     scenario_fn = SCENARIOS[scenario_name]
-    system = build_default_system()
+    system = build_default_system(
+        source_level = source_level,
+        destination_level = destination_level
+    )
 
     flow_hist = []
     alarm_snapshots = []
@@ -280,58 +363,6 @@ def simulate_scenario(scenario_name, steps=30, dt=1.0):
         "final_sequence_state": system.sequence_state,
         "last_interlock_reason": system.last_interlock_reason,
     }
-
-
-def summarize_result(result):
-    alarms_raised = sorted(
-        {event["alarm"] for event in result["alarm_history"] if event["active"] is True}
-    )
-
-    final_active_alarms = sorted(
-        [name for name, active in result["final_alarms"].items() if active]
-    )
-
-    transfer_occurred = result["final_destination_level"] > 20.0
-    alarm_lifecycle = summarize_alarm_lifecycle(result["alarm_history"])
-
-    return {
-        "scenario_name": result["scenario_name"],
-        "final_source_level": round(result["final_source_level"], 2),
-        "final_destination_level": round(result["final_destination_level"], 2),
-        "transfer_occurred": transfer_occurred,
-        "alarms_raised": alarms_raised,
-        "alarm_lifecycle": alarm_lifecycle,
-        "final_active_alarms": final_active_alarms,
-        "final_sequence_state": result["final_sequence_state"],
-        "last_interlock_reason": result["last_interlock_reason"],
-    }
-
-def print_summary_table(summaries):
-    print("\n=== Scenario Summary Report ===")
-    print(
-        f"{'Scenario':35}"
-        f"{'Src Final':>10}"
-        f"{'Dst Final':>10}"
-        f"{'Transfer':>10}"
-        f"{'Final Seq':>15}"
-    )
-    print("-" * 80)
-
-    for summary in summaries:
-        print(
-            f"{summary['scenario_name']:35}"
-            f"{summary['final_source_level']:>10.2f}"
-            f"{summary['final_destination_level']:>10.2f}"
-            f"{str(summary['transfer_occurred']):>10}"
-            f"{summary['final_sequence_state']:>15}"
-        )
-
-        print(f"  alarms_raised      : {summary['alarms_raised']}")
-        print(f"  alarm_lifecycle    : {summary['alarm_lifecycle']}")
-        print(f"  final_active_alarms: {summary['final_active_alarms']}")
-        print(f"  last_interlock     : {summary['last_interlock_reason']}")
-        print("-" * 80)
-
 
 def run_all_scenarios(steps=30, dt=1.0, save_plots=False, save_csv=True):
     summaries = []
@@ -441,6 +472,36 @@ def run_scenario(scenario_name, steps=30, dt=1.0):
         print(item)
     print(f"Saved plot: {output_path}")
 
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- END OF SIMULATING ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- START OF SUMMARIZE ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+def summarize_result(result):
+    alarms_raised = sorted(
+        {event["alarm"] for event in result["alarm_history"] if event["active"] is True}
+    )
+
+    final_active_alarms = sorted(
+        [name for name, active in result["final_alarms"].items() if active]
+    )
+
+    transfer_occurred = result["final_destination_level"] > 20.0
+    alarm_lifecycle = summarize_alarm_lifecycle(result["alarm_history"])
+
+    return {
+        "scenario_name": result["scenario_name"],
+        "final_source_level": round(result["final_source_level"], 2),
+        "final_destination_level": round(result["final_destination_level"], 2),
+        "transfer_occurred": transfer_occurred,
+        "alarms_raised": alarms_raised,
+        "alarm_lifecycle": alarm_lifecycle,
+        "final_active_alarms": final_active_alarms,
+        "final_sequence_state": result["final_sequence_state"],
+        "last_interlock_reason": result["last_interlock_reason"],
+    }
 
 def save_summary_csv(summaries, output_path="outputs/scenario_summary.csv"):
     os.makedirs("outputs", exist_ok=True)
@@ -510,6 +571,45 @@ def summarize_alarm_lifecycle(alarm_history):
 
     return lifecycle
 
+def print_summary_table(summaries):
+    print("\n=== Scenario Summary Report ===")
+    print(
+        f"{'Scenario':35}"
+        f"{'Src Final':>10}"
+        f"{'Dst Final':>10}"
+        f"{'Transfer':>10}"
+        f"{'Final Seq':>15}"
+    )
+    print("-" * 80)
+
+    for summary in summaries:
+        print(
+            f"{summary['scenario_name']:35}"
+            f"{summary['final_source_level']:>10.2f}"
+            f"{summary['final_destination_level']:>10.2f}"
+            f"{str(summary['transfer_occurred']):>10}"
+            f"{summary['final_sequence_state']:>15}"
+        )
+
+        print(f"  alarms_raised      : {summary['alarms_raised']}")
+        print(f"  alarm_lifecycle    : {summary['alarm_lifecycle']}")
+        print(f"  final_active_alarms: {summary['final_active_alarms']}")
+        print(f"  last_interlock     : {summary['last_interlock_reason']}")
+        print("-" * 80)
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- END OF SUMMARIZE ----------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+
+
+
+
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# ------------------------------------------- MAIN -----------------------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 def main():
     mode = 'batch'      #'batch' or 'single'
@@ -519,9 +619,20 @@ def main():
     if mode == 'batch':
         run_all_scenarios(save_plots=True)
     elif mode == 'single':
-        scenario_to_run = 'pump_fail_to_start'
+        scenario_to_run = 'destination_high_high_trip'
         run_scenario(scenario_to_run)
 
 
 if __name__ == "__main__":
     main()
+
+
+
+# SCENARIOS = {
+#     "normal_manual_transfer": scenario_normal_manual_transfer,
+#     "operator_valve_closure_recovery": scenario_operator_valve_closure_recovery,
+#     "valve_fail_to_open": scenario_valve_fail_to_open,
+#     "pump_fail_to_start": scenario_pump_fail_to_start,
+#     "source_low_low_trip": scenario_source_low_low_trip,
+#     "destination_high_high_trip": scenario_destination_high_high_trip
+# }

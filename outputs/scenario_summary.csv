@@ -3,3 +3,5 @@ normal_manual_transfer,18.0,72.0,True,"discharge_valve_fail_to_open, pump_fail_t
 operator_valve_closure_recovery,30.0,60.0,True,"discharge_valve_fail_to_open, pump_fail_to_start",None,None,TRANSFERRING,Transfer allowed
 valve_fail_to_open,32.0,58.0,True,"discharge_valve_fail_to_open, pump_fail_to_start","discharge_valve_fail_to_open (6 steps, 11->17)",None,TRANSFERRING,Transfer allowed
 pump_fail_to_start,32.0,58.0,True,"discharge_valve_fail_to_open, pump_fail_to_start","pump_fail_to_start (6 steps, 11->17)",None,TRANSFERRING,Transfer allowed
+source_low_low_trip,18.0,72.0,True,"discharge_valve_fail_to_open, pump_fail_to_start",None,None,TRANSFERRING,Transfer allowed
+destination_high_high_trip,18.0,72.0,True,"discharge_valve_fail_to_open, pump_fail_to_start",None,None,TRANSFERRING,Transfer allowed

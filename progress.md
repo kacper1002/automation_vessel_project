@@ -161,6 +161,22 @@ This project is intended to demonstrate:
 * Added run loop, that runs all of the scenarios and produces report in csv
 * Ran pytest tests on tests folder, to keep track of changes and if system is working. Allowing for easier control of if things are working. 
 
+9. Adding 2 more scenarios
+* Source low-low protection scenario
+Goal:
+- Keep transfer running until source tank reaches the low-low threshold
+- Confirm source_low_low alarm appears
+- Confirm transfer stop or is blocked by interlock
+
+* Destination high-high protection scenario
+Goal:
+- Keep transfer running until destination tank reaches the high-high threshold
+- Confirm destination_high_high alarm appears
+- Confirm transfer stops or is blocked
+
+* Also adding testing scenarios for those
+- test_source_low_low_alarm_triggers
+- test_destination_high_high_alarm_triggers
 
 Avoid:
 

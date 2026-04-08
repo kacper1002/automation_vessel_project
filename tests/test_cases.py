@@ -30,3 +30,23 @@ def test_pump_fail_to_start_does_not_stop_entire_scenario():
 
     assert result["final_source_level"] < 70.0
     assert result["final_destination_level"] > 20.0
+
+def test_source_low_low_alarm_triggers():
+    result = simulate_scenario("source_low_low_trip", steps=50)
+
+    assert any(
+        event["alarm"] == "source_low_low" and event["active"] is True
+        for event in result["alarm_history"]
+    )
+
+def test_destination_high_high_alarm_triggers():
+    result = simulate_scenario(
+        "destination_high_high_trip",
+        steps=20,
+        destination_level=88.0,
+    )
+
+    assert any(
+        event["alarm"] == "destination_high_high" and event["active"] is True
+        for event in result["alarm_history"]
+    )
