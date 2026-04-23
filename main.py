@@ -321,7 +321,8 @@ def simulate_scenario(
         source_level=70,
         destination_level=20,
         ):
-    scenario_fn = SCENARIOS[scenario_name]
+    scenario_cfg = SCENARIOS[scenario_name]
+    scenario_fn = scenario_cfg["fn"]
     system = build_default_system(
         source_level = source_level,
         destination_level = destination_level
@@ -383,7 +384,8 @@ def run_all_scenarios(steps=30, dt=1.0, save_plots=False, save_csv=True):
 
 
 def run_scenario(scenario_name, steps=30, dt=1.0):
-    scenario_fn = SCENARIOS[scenario_name]
+    scenario_cfg = SCENARIOS[scenario_name]
+    scenario_fn = scenario_cfg["fn"]
     system = build_default_system()
 
     t_hist = []
